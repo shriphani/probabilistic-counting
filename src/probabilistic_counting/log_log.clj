@@ -1,6 +1,8 @@
 (ns probabilistic-counting.log-log
   "The LogLog algorithnm"
-  (:use [incanter.core]))
+  (:use [incanter.core])
+  (:import [org.apache.mahout.math MurmurHash]
+           [org.apache.commons.lang3 SerializationUtils]))
 
 (defn rho
   "Number of leading zeros in the bit-representation
@@ -18,29 +20,17 @@
              (Math/log 2)))))))
 
 (defn log-log
-  [stream num-buckets-exponent]
-  (let [buckets  (make-array Integer/TYPE (Math/pow 2 num-buckets-exponent))
-        j-mask   (bit-shift-left
-                  (- (int (Math/pow 2 num-buckets-exponent)) 1)
-                  (- 32 num-buckets-exponent))
-        val-mask (bit-xor j-mask 0xffff)
-        m        (Math/pow 2 num-buckets-exponent)
-        alpha    (Math/pow
-                  (* (gamma (- (/ 1 m)))
-                     (/ (- 1 (Math/pow 2 (/ 1 m)))
-                        (Math/log 2)))
-                  (- m))]
+  [xs k]
+  (let [m       (int (Math/pow 2 k))
+        buckets (make-array Integer/TYPE m)]
     (do
-      (doseq [x stream]
-        (let [index (bit-and x j-mask)
-              val   (bit-and x val-mask)]
-          (println :x (Integer/toBinaryString x)
-                   :index (Integer/toBinaryString index)
-                   :val (Integer/toBinaryString (rho val)))
-          (aset buckets index (max (aget buckets index) (rho val)))))
-      (*
-       0.79402
-       m
-       (Math/pow
-        2 (/ (apply + buckets)
-             (count buckets)))))))
+      (doseq [x xs]
+        (let [h   (int (MurmurHash/hash (SerializationUtils/serialize x) 1991))
+              idx (bit-and h (- m 1))
+              val (max
+                   (aget buckets idx)
+                   (rho h))]
+          (aset buckets idx val)))
+      (* (Math/pow 2 (/ (apply + buckets) m))
+         m
+         0.79402))))

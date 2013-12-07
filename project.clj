@@ -4,4 +4,6 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
+                 [org.apache.mahout/mahout-math "0.8"]
+                 [org.apache.commons/commons-lang3 "3.1"]
                  [incanter/incanter-core "1.5.4"]])

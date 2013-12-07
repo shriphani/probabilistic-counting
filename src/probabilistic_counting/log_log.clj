@@ -42,10 +42,6 @@
                    (aget buckets idx)
                    (rho h))]
           (aset buckets idx val)))
-      (let [m0           (int (Math/floor (* 0.7 m)))
-            buckets-filt (take m0 (filter #(< 0 %) (sort buckets)))]
-        (do
-          (println m0)
-          (* (Math/pow 2 (/ (apply + buckets-filt) m0))
-             m0
-             (alpha m0)))))))
+      (* (Math/pow 2 (/ (apply + buckets) m))
+         m
+         (alpha m)))))

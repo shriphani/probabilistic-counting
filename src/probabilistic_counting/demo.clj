@@ -4,6 +4,5 @@
 
 (defn demo-log-log []
   (map
-   (fn [_] (/ 100000
-             (log-log (map rand (range 100000)) 10)))
+   (fn [_] (log-log (map #(mod % 12) (range 100000)) 2))
    (range 10)))

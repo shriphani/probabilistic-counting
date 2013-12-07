@@ -19,11 +19,22 @@
           (/ (Math/log (+ y 1))
              (Math/log 2)))))))
 
+(defn alpha
+  [m]
+  (if (< 64 m)
+    0.79402
+    (* 2 (Math/pow (* (gamma (- (/ 1 m)))
+                      (/ (- 1 (Math/pow 2 (/ 1 m)))
+                         (Math/log 2)))
+                   (- m)))))
+
 (defn log-log
   [xs k]
   (let [m       (int (Math/pow 2 k))
         buckets (make-array Integer/TYPE m)]
+
     (do
+      (map #(aset buckets % 0) (range m))
       (doseq [x xs]
         (let [h   (int (MurmurHash/hash (SerializationUtils/serialize x) 1991))
               idx (bit-and h (- m 1))
@@ -31,6 +42,10 @@
                    (aget buckets idx)
                    (rho h))]
           (aset buckets idx val)))
-      (* (Math/pow 2 (/ (apply + buckets) m))
-         m
-         0.79402))))
+      (let [m0           (int (Math/floor (* 0.7 m)))
+            buckets-filt (take m0 (filter #(< 0 %) (sort buckets)))]
+        (do
+          (println m0)
+          (* (Math/pow 2 (/ (apply + buckets-filt) m0))
+             m0
+             (alpha m0)))))))
